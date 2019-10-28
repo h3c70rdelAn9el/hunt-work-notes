@@ -1,84 +1,31 @@
 import React, { Component } from 'react';
-import { Link } from 'react-router-dom';
 import './App.css';
-import firebase from '../../Firebase';
+import { BrowserRouter as Router, Route } from 'react-router-dom';
+import Home from '../../components/Auth/Home';
+import Login from '../../components/Auth/Login';
+import SignUp from '../../components/Auth/SignUp';
+import { AuthProvider } from '../../Auth';
+import PrivateRoute from '../../PrivateRoute';
+import Create from '../../components/Create';
+import Edit from '../../components/Edit';
+import Show from '../../components/Show';
 
-// class App extends Component {
-//   render() {
-//     return (
-//       <div className="App">
-//         Placeholder
-//       </div>
-//     );
-//   }
-// }
-
-
-class App extends Component {
-  constructor(props) {
-    super(props);
-    this.ref = firebase.firestore().collection('proposals');
-    this.unsubscribe = null;
-    this.state = {
-      proposals: []
-    };
-  }
-
-  onCollectionUpdate = (querySnapshot) => {
-    const proposals = [];
-    querySnapshot.forEach((doc) => {
-      const { company, name, notes } = doc.data();
-      proposals.push({
-        key: doc.id,
-        doc,
-        company,
-        name,
-        notes,
-      });
-    });
-    this.setState({
-      proposals
-    });
-  }
-
-  componentDidMount() {
-    this.unsubscribe = this.ref.onSnapshot(this.onCollectionUpdate);
-  }
-
+export default class App extends Component {
   render() {
     return (
-      <div className="container">
-        <div className="panel panel-default">
-          <div className="panel-heading">
-            <h3 className="panel-title">
-              Proposal List
-            </h3>
+      <AuthProvider>
+        <Router>
+          <div>
+            <PrivateRoute exact path="/" component={Home} />
+            <Route exact path="/login" component={Login} />
+            <Route exact path="/signup" component={SignUp} />
+            <PrivateRoute path="/create" component={Create} />
+            <PrivateRoute path="/edit" component={Edit} />
+            <PrivateRoute exact path={`/show/:{proposal.key}`} component={Show} />
           </div>
-          <div className="panel-body">
-            <h4><Link to="/create">Add</Link></h4>
-            <table className="table table-stripe">
-              <thead>
-                <tr>
-                  <th>Company</th>
-                  <th>Name</th>
-                  <th>Notes</th>
-                </tr>
-              </thead>
-              <tbody>
-                {this.state.proposals.map(proposal =>
-                  <tr>
-                    <td><Link to={`/show/${proposal.key}`}>{proposal.company}</Link></td>
-                    <td>{proposal.name}</td>
-                    <td>{proposal.notes}</td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
-          </div>
-        </div>
-      </div>
-    );
+        </Router>
+      </AuthProvider>
+    )
   }
 }
 
-export default App;
